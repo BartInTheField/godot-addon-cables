@@ -17,6 +17,10 @@ enum TriggerType {
 var is_target_event_type: Callable = func(): return false
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		set_process_unhandled_input(false)
+		return
+	
 	match trigger_type:
 		TriggerType.JUST_PRESSED: is_target_event_type = _is_just_pressed
 		TriggerType.JUST_RELEASED: is_target_event_type = _is_just_released

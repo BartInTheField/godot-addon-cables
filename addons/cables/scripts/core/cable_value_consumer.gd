@@ -31,6 +31,10 @@ signal any_update()
 @export var input: Cable
 
 func _ready() -> void:
+	# Tool script only for configuration warnings; Cables are placeholders in the editor.
+	if input == null or Engine.is_editor_hint():
+		return
+	
 	input.debug_log("Consumer<%s> link_until_destroyed()" % str(self))
 	input.link_until_destroyed(self, _on_cable_value_update)
 

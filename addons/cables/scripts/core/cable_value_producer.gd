@@ -10,13 +10,20 @@ class_name CableValueProducer extends NodeWithLifetime
 
 ## Emits on the assigned [member output] [Cable] with the given [param value].
 func send_value_update(value: Variant) -> void:
+	if not _can_send(): return
 	output.debug_log("Producer<%s> send_value_update(%s)" % [str(self), str(value)])
 	output.notify(value)
 
 ## Emits a [constant Cable.VOID_EVENT] on the assigned [member output] [Cable].
 func send_void_update() -> void:
+	if not _can_send(): return
 	output.debug_log("Producer<%s> send_void_update()" % str(self))
 	output.void_notify()
+
+# Producers are tool scripts only for configuration warnings; Cables are not,
+# so they're placeholder instances in the editor and must not be called there.
+func _can_send() -> bool:
+	return output != null and not Engine.is_editor_hint()
 
 func _get_configuration_warnings() -> PackedStringArray:
 	var warnings := PackedStringArray()
