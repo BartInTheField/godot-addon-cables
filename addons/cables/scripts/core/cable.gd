@@ -65,7 +65,9 @@ func debug_log(message: String) -> void:
 ## Convenience for obtaining the current value or a fallback,
 ## depending on the state of this cable.
 func get_value_or_default(default_value: Variant) -> Variant:
-	if did_notify_once and not Cable.is_void_event(current_value):
+	# Not Cable.is_void_event(): referencing its own class_name from this script
+	# keeps the script alive and leaks it at exit.
+	if did_notify_once and not is_void_event(current_value):
 		return current_value
 	return default_value
 
