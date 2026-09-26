@@ -6,6 +6,30 @@ for a more visual / editor gameplay design approach.
 The implementation of this addon is very much inspired by [Ryan Hipple's 2017 Talk](https://www.youtube.com/watch?v=raQ3iHhE_Kk)
 on using Unity `ScriptableObject`s as an alternative to singletons.
 
+## Installation
+
+From your Godot project's root (the folder with `project.godot`), on Linux or macOS:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/BartInTheField/godot-addon-cables/main/install.sh | sh
+```
+
+This puts the latest release in `addons/cables`, replacing any older version there. Run it again to update.
+
+Or install it by hand (also works on Windows):
+
+1. Download `godot-addon-cables.zip` from the [latest release](https://github.com/BartInTheField/godot-addon-cables/releases/latest)
+2. Extract it into your project's root, so you get `res://addons/cables/plugin.cfg`
+3. Enable **Cables** in `Project` > `Project Settings` > `Plugins`
+
+The addon targets Godot 4.4+.
+
+### Releases
+
+Every hour, if `main` has new commits, the addon scripts are checked with Godot and a release is published. Versions are
+[CalVer](https://calver.org) `YYYY.MM.DD.N`, where `N` counts the releases of that (UTC) day: `2026.09.26.1`,
+`2026.09.26.2`, ... The version is written into the released `plugin.cfg`; a checkout of the repository reports `dev`.
+
 ## Usage
 
 The general flow for usage is:

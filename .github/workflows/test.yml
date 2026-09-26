@@ -1,0 +1,39 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # Pinned to the engine version in project.godot (config/features); bump both together.
+      GODOT_URL: https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+      GODOT_SHA256: d6e382fb531019f85630c1f485a561a0d20c4a2344b6c3847735cfee7da812aa
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Godot
+        run: |
+          curl -fsSL -o godot.zip "$GODOT_URL"
+          echo "$GODOT_SHA256  godot.zip" | sha256sum -c -
+          unzip -q godot.zip -d "$RUNNER_TEMP/godot"
+          mv "$RUNNER_TEMP"/godot/Godot_* "$RUNNER_TEMP/godot/godot"
+          echo "$RUNNER_TEMP/godot" >> "$GITHUB_PATH"
+          rm godot.zip
+      - run: godot --headless --version
+      # Import first so every class_name is registered before the scripts that use them are checked.
+      - name: Import project
+        run: godot --headless --import
+      - name: Check scripts
+        run: |
+          fail=0
+          for f in $(git ls-files '*.gd'); do
+            godot --headless --check-only -s "$f" || { echo "::error file=$f::GDScript check failed"; fail=1; }
+          done
+          exit $fail
