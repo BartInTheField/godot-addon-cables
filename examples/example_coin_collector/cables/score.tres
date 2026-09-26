@@ -1,9 +1,11 @@
-[gd_resource type="Resource" script_class="Cable" load_steps=2 format=3 uid="uid://dsgcjj0o1cabr"]
+[gd_resource type="Resource" script_class="IntCable" load_steps=2 format=3 uid="uid://dsgcjj0o1cabr"]
 
-[ext_resource type="Script" uid="uid://bu8qa53bmqorh" path="res://addons/cables/scripts/core/cable.gd" id="1_qpu5q"]
+[ext_resource type="Script" uid="uid://bv7k4ckqnjd16" path="res://addons/cables/scripts/values/int_cable.gd" id="1_value"]
 
 [resource]
-script = ExtResource("1_qpu5q")
+script = ExtResource("1_value")
+initial_value = 0
 replay_on_link = true
 debug_trace = true
-debug_description = ""
+debug_description = "Number of coins collected. Produced by Coin, shown by CounterDisplay."
+metadata/_custom_type_script = "uid://bv7k4ckqnjd16"

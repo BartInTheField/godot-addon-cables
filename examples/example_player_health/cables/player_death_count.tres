@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="Cable" load_steps=2 format=3 uid="uid://bsfmkg43jadv2"]
+[gd_resource type="Resource" script_class="IntCable" load_steps=2 format=3 uid="uid://bsfmkg43jadv2"]
 
-[ext_resource type="Script" uid="uid://bu8qa53bmqorh" path="res://addons/cables/scripts/core/cable.gd" id="1_hi7gm"]
+[ext_resource type="Script" uid="uid://bv7k4ckqnjd16" path="res://addons/cables/scripts/values/int_cable.gd" id="1_value"]
 
 [resource]
-script = ExtResource("1_hi7gm")
+script = ExtResource("1_value")
+initial_value = 0
 replay_on_link = true
 debug_trace = true
-debug_description = ""
-metadata/_custom_type_script = "uid://bu8qa53bmqorh"
+debug_description = "Number of times the player died. Produced by Player, shown by DeathCounterUI."
+metadata/_custom_type_script = "uid://bv7k4ckqnjd16"

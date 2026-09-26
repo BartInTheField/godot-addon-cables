@@ -1,6 +1,6 @@
 extends Control
 
-@export var death_count_cable: Cable
+@export var death_count_cable: IntCable
 @onready var _label: Label = $Label
 
 func _ready() -> void:
