@@ -26,7 +26,7 @@ The addon targets Godot 4.4+.
 
 ### Releases
 
-Every hour, if `main` has new commits, the addon scripts are checked with Godot and a release is published. Versions are
+Every hour, if `main` has new commits, the addon scripts are checked with Godot, the tests are run, and a release is published. Versions are
 [CalVer](https://calver.org) `YYYY.MM.DD.N`, where `N` counts the releases of that (UTC) day: `2026.09.26.1`,
 `2026.09.26.2`, ... The version is written into the released `plugin.cfg`; a checkout of the repository reports `dev`.
 
