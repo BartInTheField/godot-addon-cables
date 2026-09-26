@@ -30,7 +30,8 @@ func append(unlink_actions: Array[Callable]) -> CallableSink:
 ## [/codeblock]
 func aggregate(unlink_actions: Array[Callable]) -> Callable:
 	append(unlink_actions)
-	return call_each_and_clear
+	# A lambda keeps this sink alive; a bound method Callable wouldn't.
+	return func() -> void: call_each_and_clear()
 
 ## Similar to [method aggregate], but deregisters any currently
 ## registered [code]Callable[/code]s via [method call_each_and_clear]
