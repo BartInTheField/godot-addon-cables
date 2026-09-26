@@ -12,8 +12,12 @@ class_name Cable extends Resource
 const VOID_EVENT := {}
 
 ## Utility to check if the value was produced from a [method void_notify] call.
+## [br][br]
+## An empty [Dictionary] created at runtime (e.g. [code]notify({})[/code]) is a regular value, not a void event.
 static func is_void_event(value: Variant) -> bool:
-	return typeof(value) == typeof(VOID_EVENT) and value == VOID_EVENT
+	# Not is_same(value, VOID_EVENT): each script referencing Cable.VOID_EVENT gets its own
+	# copy of the constant. Copies stay empty and read-only, unlike dictionaries made at runtime.
+	return value is Dictionary and value.is_empty() and value.is_read_only()
 
 var _current_value: Variant = null
 var _did_notify_once: bool = false

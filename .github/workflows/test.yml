@@ -37,3 +37,7 @@ jobs:
             godot --headless --check-only -s "$f" || { echo "::error file=$f::GDScript check failed"; fail=1; }
           done
           exit $fail
+      - name: Unit tests
+        run: tests/run.sh unit
+      - name: Integration tests
+        run: tests/run.sh integration
