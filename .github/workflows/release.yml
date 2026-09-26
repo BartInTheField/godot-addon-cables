@@ -1,0 +1,70 @@
+name: Release
+
+# Release hourly rather than on every merge, so PRs merged close together share one release and changelog.
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+# One release at a time, so two runs on the same day can't claim the same version.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.calver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      # Skip when main is already released. CalVer YYYY.MM.DD.N: N counts the releases of the (UTC) day.
+      # Only CalVer tags count, so older SemVer tags (2.3.0, ...) don't block a release.
+      - id: calver
+        run: |
+          released=$(git tag --points-at HEAD --list '[0-9][0-9][0-9][0-9].[0-9][0-9].[0-9][0-9].*')
+          if [ -n "$released" ]; then
+            echo "Nothing merged since $(echo "$released" | head -1); skipping."
+            exit 0
+          fi
+          today=$(date -u +%Y.%m.%d)
+          last=$(git tag --list "${today}.*" | sed "s/^${today}\.//" | sort -n | tail -1)
+          echo "version=${today}.$(( ${last:-0} + 1 ))" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: version
+    if: needs.version.outputs.version != ''
+    uses: ./.github/workflows/test.yml
+
+  release:
+    needs: [version, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # .gitattributes export-ignores everything but addons/cables, so the archive is exactly what goes in a project.
+      - name: Package addon
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          mkdir -p dist/pkg
+          git archive HEAD | tar -x -C dist/pkg
+          sed -i "s/^version=.*/version=\"${VERSION}\"/" dist/pkg/addons/cables/plugin.cfg
+          grep -q "^version=\"${VERSION}\"$" dist/pkg/addons/cables/plugin.cfg
+          cp LICENSE README.md dist/pkg/addons/cables/
+          (cd dist/pkg && zip -qr ../godot-addon-cables.zip addons)
+          cd dist && sha256sum godot-addon-cables.zip > checksums.txt
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          gh release create "$VERSION" dist/godot-addon-cables.zip dist/checksums.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$VERSION" \
+            --generate-notes
