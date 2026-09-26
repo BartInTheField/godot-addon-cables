@@ -28,6 +28,9 @@ class_name CableNodeValueProducer extends CableValueProducer
 @export var clear_on_destroy := true
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		return
+	
 	if node_value and notify_on_node_value_ready:
 		if node_value.is_node_ready():
 			send_node_value()
