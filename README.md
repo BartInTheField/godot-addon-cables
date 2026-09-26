@@ -40,6 +40,18 @@ The general flow for usage is:
 4. Produce values on the cable - this can be done by either producing a value on a `Cable` directly via `notify()` (e.g. for primitive values like `float`,`string`,`int`,`bool` etc), or using a `CableValueProducer` node to emit events / data on the cable. (NOTE: the producer should generally be a child of the node that is producing the value)
 5. Consume values from the cable - this can be done by adding the `CableValueConsumer` node as a child of the node that wishes to consume value updates
 
+### Typed Cables with an initial value
+
+For values a game designer should be able to tune, create one of the typed Cables instead of a plain `Cable`:
+`BoolCable`, `IntCable`, `FloatCable`, `StringCable`, `Vector2Cable`, `Vector3Cable` or `ColorCable`.
+They work like a `Cable`, plus an **Initial Value** field in the Inspector (e.g. a `FloatCable` named
+`player_health_value.tres` with an initial value of `100`):
+
+- Until something is emitted, `current_value` returns the initial value, and with **Replay on Link** on,
+  consumers receive it as soon as they link, so a HUD shows the starting value right away.
+- `reset()` emits the initial value again, e.g. when a level restarts.
+- Values emitted while the game runs are never saved to the `.tres`; each run starts from the initial value.
+
 Available Producer Types:
 
 1. `CableNodeValueProducer` - sends `Node` references across the `Cable`, and automatically clears the reference when the producer gets destroyed

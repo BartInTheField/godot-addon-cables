@@ -42,18 +42,27 @@ signal _value_updated(value: Variant)
 @export_multiline var debug_description := ""
 
 ## [code]True[/code] if this Cable has emitted at least one value.
-## [br]
-## This will help determine when the value should be replayed.
+## [br][br]
+## An initial value (see [IntCable] and the other typed Cables) doesn't count as emitted;
+## use [member has_value] to also include it.
 var did_notify_once: bool:
 	get: return _did_notify_once
 
-## The last emitted value.
+## [code]True[/code] if [member current_value] holds a value: either one was emitted,
+## or this Cable has an initial value (see [IntCable] and the other typed Cables).
+## [br]
+## This determines when the value should be replayed.
+var has_value: bool:
+	get: return _did_notify_once or _has_initial_value()
+
+## The last emitted value, or the initial value if nothing was emitted yet
+## ([code]null[/code] for a plain [Cable], which has no initial value).
 ## [br][br]
 ## This can be compared against the value received from [method link] where
 ## this would be the old value, and the value in the [method link] callable
 ## would be the new value.
 var current_value: Variant:
-	get: return _current_value
+	get: return _current_value if _did_notify_once else _get_initial_value()
 	set(value): notify(value)
 
 ## Print contextual information for this cable to the console.
@@ -67,7 +76,7 @@ func debug_log(message: String) -> void:
 func get_value_or_default(default_value: Variant) -> Variant:
 	# Not Cable.is_void_event(): referencing its own class_name from this script
 	# keeps the script alive and leaks it at exit.
-	if did_notify_once and not is_void_event(current_value):
+	if has_value and not is_void_event(current_value):
 		return current_value
 	return default_value
 
@@ -87,14 +96,23 @@ func void_notify() -> void:
 	debug_log("void_notify()")
 	notify(VOID_EVENT)
 
+## Emits the initial value again (see [IntCable] and the other typed Cables),
+## e.g. to restore a player's health when a level restarts.
+## [br][br]
+## Does nothing on a plain [Cable], since it has no initial value.
+func reset() -> void:
+	if not _has_initial_value(): return
+	debug_log("reset()")
+	notify(_get_initial_value())
+
 ## Registers the given [code]Callable[/code] to this cable.
 ## [br][br]
 ## The given [code]Callable[/code] will be updated with the latest value
 ## whenever [method notify] or [method void_notify] is called on this Cable.
 ## [br][br]
-## If this Cable has emitted at least one value, and is set up to
+## If this Cable has a value (see [member has_value]), and is set up to
 ## replay values, the given [code]Callable[/code] will be called immediately
-## with the latest value.
+## with the latest value, or the initial value if nothing was emitted yet.
 ## [br][br]
 ## Does nothing if the given callable is already connected to this Cable.
 ## [br][br]
@@ -105,7 +123,7 @@ func link(callable: Callable) -> Callable:
 		debug_log("link")
 		_value_updated.connect(callable)
 	
-	if replay_on_link and did_notify_once:
+	if replay_on_link and has_value:
 		debug_log("replay_on_link")
 		callable.call(current_value)
 	
@@ -131,3 +149,10 @@ func link_until_destroyed(node: NodeWithLifetime, callable: Callable) -> void:
 	debug_log("link_until_destroyed(%s)" % node.name)
 	var unlink_action := link(callable)
 	node.node_destroyed.connect(unlink_action)
+
+# Overridden by the typed Cables (IntCable, FloatCable, ...) that have an initial value.
+func _has_initial_value() -> bool:
+	return false
+
+func _get_initial_value() -> Variant:
+	return null

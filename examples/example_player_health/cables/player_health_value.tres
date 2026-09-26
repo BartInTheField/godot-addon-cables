@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="Cable" load_steps=2 format=3 uid="uid://bcjc2nyi2ww2a"]
+[gd_resource type="Resource" script_class="FloatCable" load_steps=2 format=3 uid="uid://bcjc2nyi2ww2a"]
 
-[ext_resource type="Script" uid="uid://bu8qa53bmqorh" path="res://addons/cables/scripts/core/cable.gd" id="1_gstup"]
+[ext_resource type="Script" uid="uid://qvqlfqsgtlqn" path="res://addons/cables/scripts/values/float_cable.gd" id="1_value"]
 
 [resource]
-script = ExtResource("1_gstup")
+script = ExtResource("1_value")
+initial_value = 100.0
 replay_on_link = true
 debug_trace = true
-debug_description = ""
-metadata/_custom_type_script = "uid://bu8qa53bmqorh"
+debug_description = "Player health points; the initial value is the health the player starts with. Produced by Player."
+metadata/_custom_type_script = "uid://qvqlfqsgtlqn"

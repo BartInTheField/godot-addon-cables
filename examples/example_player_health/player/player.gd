@@ -4,15 +4,19 @@ class_name Player extends Node2D
 @export var damage_value: float = 25.0
 @export var damage_action: StringName = "action1"
 
-@export var health_value_cable: Cable
+## Its initial value is the health the player starts with.
+@export var health_value_cable: FloatCable
 @export var health_ratio_value_cable: Cable
 @export var death_event_cable: Cable
-@export var death_count_cable: Cable
+@export var death_count_cable: IntCable
 
 var health: float
 
 func _ready() -> void:
-	health = max_health
+	# The Cable keeps its value when the scene reloads, so start again from its initial value.
+	health_value_cable.reset()
+	health = health_value_cable.current_value
+	health_ratio_value_cable.notify(health / max_health)
 
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed(damage_action):
@@ -33,5 +37,4 @@ func take_damage(damage: float) -> void:
 	
 	if dead:
 		death_event_cable.void_notify()
-		var updated_death_count = death_count_cable.get_value_or_default(0) + 1
-		death_count_cable.notify(updated_death_count)
+		death_count_cable.notify(death_count_cable.current_value + 1)
