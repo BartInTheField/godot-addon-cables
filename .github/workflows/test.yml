@@ -11,21 +11,64 @@ permissions:
 
 jobs:
   check:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
-    env:
-      # Pinned to the engine version in project.godot (config/features); bump both together.
-      GODOT_URL: https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
-      GODOT_SHA256: d6e382fb531019f85630c1f485a561a0d20c4a2344b6c3847735cfee7da812aa
+    # Pre-release rows set experimental: true. continue-on-error keeps that failure from
+    # failing this workflow, including when release.yml calls it before publishing.
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      # A pre-release failure must not cancel the stable jobs.
+      fail-fast: false
+      matrix:
+        include:
+          # Minimum engine, matching project.godot config/features. This leg keeps the
+          # check name "check". Bump its URL and SHA256 only together with that minimum.
+          - name: check
+            experimental: false
+            url: https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+            sha256: d6e382fb531019f85630c1f485a561a0d20c4a2344b6c3847735cfee7da812aa
+            sha512_sums: ""
+          # Current stable. A failure fails the workflow, same as the 4.4.1 job.
+          - name: check (4.7.2)
+            experimental: false
+            url: https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+            sha256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
+            sha512_sums: ""
+          # Latest 4.8 pre-release from godotengine/godot-builds. Non-blocking.
+          # To track a newer pre-release, replace the tag in both URLs (the zip and
+          # SHA512-SUMS.txt). The zip filename must be the one listed in that file
+          # (Godot_v<tag>_linux.x86_64.zip). No hash is pinned here; leave experimental: true.
+          - name: check (4.8-dev7)
+            experimental: true
+            url: https://github.com/godotengine/godot-builds/releases/download/4.8-dev7/Godot_v4.8-dev7_linux.x86_64.zip
+            sha256: ""
+            sha512_sums: https://github.com/godotengine/godot-builds/releases/download/4.8-dev7/SHA512-SUMS.txt
     steps:
       - uses: actions/checkout@v5
       - name: Install Godot
+        env:
+          GODOT_URL: ${{ matrix.url }}
+          GODOT_SHA256: ${{ matrix.sha256 }}
+          GODOT_SHA512_SUMS: ${{ matrix.sha512_sums }}
         run: |
-          curl -fsSL -o godot.zip "$GODOT_URL"
-          echo "$GODOT_SHA256  godot.zip" | sha256sum -c -
-          unzip -q godot.zip -d "$RUNNER_TEMP/godot"
+          archive=$(basename "$GODOT_URL")
+          curl -fsSL -o "$archive" "$GODOT_URL"
+          if [ -n "$GODOT_SHA256" ]; then
+            echo "$GODOT_SHA256  $archive" | sha256sum -c -
+          elif [ -n "$GODOT_SHA512_SUMS" ]; then
+            curl -fsSL -o SHA512-SUMS.txt "$GODOT_SHA512_SUMS"
+            grep -F "  ${archive}" SHA512-SUMS.txt > "$archive.sha512"
+            test "$(wc -l < "$archive.sha512")" -eq 1
+            sha512sum -c "$archive.sha512"
+            rm -f SHA512-SUMS.txt "$archive.sha512"
+          else
+            echo "No checksum configured for $GODOT_URL" >&2
+            exit 1
+          fi
+          unzip -q "$archive" -d "$RUNNER_TEMP/godot"
           mv "$RUNNER_TEMP"/godot/Godot_* "$RUNNER_TEMP/godot/godot"
           echo "$RUNNER_TEMP/godot" >> "$GITHUB_PATH"
-          rm godot.zip
+          rm -f "$archive"
       - run: godot --headless --version
       # Import first so every class_name is registered before the scripts that use them are checked.
       - name: Import project
