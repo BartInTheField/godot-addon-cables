@@ -7,8 +7,9 @@ Only `addons/cables` ships (see `.gitattributes`); `examples/` and `tests/` stay
 
 Run all tests with `tests/run.sh`, or one suite with `tests/run.sh unit` / `tests/run.sh integration`.
 It uses `godot` from the PATH (override with `GODOT=/path/to/godot`), runs headless, and exits non-zero on failure.
-CI (`.github/workflows/test.yml`) runs both suites on every pull request and push to `main`, and before each release,
-with the Godot version pinned there (currently 4.4.1). Keep tests compatible with that version, not only your local one.
+CI (`.github/workflows/test.yml`) runs both suites on every pull request and push to `main`, and before each release.
+The minimum pin is Godot 4.4.1 (the engine declared in `project.godot`); Godot 4.7.2 is required as well. A 4.8
+pre-release job does not block merges. Keep tests compatible with 4.4.1, not only your local engine.
 
 Behaviour expected when changing code:
 
